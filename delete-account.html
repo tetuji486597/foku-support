@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foku - Delete Account & Data</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #f5efe6 0%, #e8e1d9 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 48px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #8b9a6d;
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .tagline {
+            color: #7a8a5c;
+            text-align: center;
+            font-size: 16px;
+            margin-bottom: 32px;
+        }
+
+        h2 {
+            color: #5a6a4d;
+            font-size: 20px;
+            margin-bottom: 16px;
+            margin-top: 32px;
+        }
+
+        h2:first-of-type {
+            margin-top: 0;
+        }
+
+        p {
+            color: #666;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .warning-box {
+            background: #fff3e0;
+            border: 1px solid #ffcc80;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .warning-box p {
+            color: #e65100;
+            margin-bottom: 0;
+            font-weight: 500;
+        }
+
+        .data-list {
+            background: #f9f7f4;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .data-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .data-list li {
+            color: #555;
+            padding: 8px 0;
+            border-bottom: 1px solid #e8e1d9;
+            font-size: 15px;
+        }
+
+        .data-list li:last-child {
+            border-bottom: none;
+        }
+
+        .data-list li::before {
+            content: "\2022";
+            color: #c0392b;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .contact-btn {
+            display: inline-block;
+            background: #c0392b;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 8px;
+            transition: background 0.2s;
+        }
+
+        .contact-btn:hover {
+            background: #a93226;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 16px;
+            margin-left: 16px;
+            color: #8b9a6d;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .steps {
+            background: #f9f7f4;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .steps ol {
+            padding-left: 20px;
+        }
+
+        .steps li {
+            color: #555;
+            padding: 8px 0;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid #e8e1d9;
+            color: #999;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Delete Account & Data</h1>
+        <p class="tagline">Foku - Account Deletion Request</p>
+
+        <div class="warning-box">
+            <p>Account deletion is permanent and cannot be undone. All your data will be permanently removed from our servers.</p>
+        </div>
+
+        <h2>What gets deleted</h2>
+        <div class="data-list">
+            <ul>
+                <li>Your account and login credentials</li>
+                <li>Profile information (display name)</li>
+                <li>Study preferences and settings</li>
+                <li>Study statistics (streaks, focus time, sessions)</li>
+                <li>Chat messages you have sent</li>
+                <li>Notification preferences and push tokens</li>
+                <li>Subscription records</li>
+                <li>Moderation data (reports, blocked users)</li>
+            </ul>
+        </div>
+
+        <p><strong>Note:</strong> Camera data is processed entirely on your device and is never stored on our servers, so there is nothing to delete. If you have an active subscription, please cancel it through your device's app store before requesting deletion.</p>
+
+        <h2>How to request deletion</h2>
+        <div class="steps">
+            <ol>
+                <li>Send an email to the address below from the email associated with your Foku account.</li>
+                <li>Include <strong>"Delete My Account"</strong> in the subject line.</li>
+                <li>We will verify your identity and process the deletion within 3 business days.</li>
+                <li>You will receive a confirmation email once your data has been deleted.</li>
+            </ol>
+        </div>
+
+        <a href="mailto:gordonj2016@outlook.com?subject=Delete%20My%20Account&body=Please%20delete%20my%20Foku%20account%20and%20all%20associated%20data.%0A%0AMy%20account%20email%3A%20" class="contact-btn">Request Account Deletion</a>
+        <a href="index.html" class="back-link">Back to Support</a>
+
+        <div class="footer">
+            <p>&copy; 2024 Foku. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
