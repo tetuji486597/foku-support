@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Foku - Delete Account & Data</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         * {
             margin: 0;
@@ -74,6 +75,20 @@
             color: #e65100;
             margin-bottom: 0;
             font-weight: 500;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .info-box p {
+            color: #1565c0;
+            margin-bottom: 0;
+            font-size: 14px;
         }
 
         .data-list {
@@ -291,6 +306,65 @@
         .btn-confirm-delete:hover {
             background: #a93226;
         }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: #d4cfc7;
+        }
+
+        .divider-text {
+            margin: 0 16px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .google-signin-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .tab-switcher {
+            display: flex;
+            background: #f0ece6;
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 24px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            background: transparent;
+            color: #999;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #5a6a4d;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .auth-section {
+            display: none;
+        }
+
+        .auth-section.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -318,20 +392,56 @@
 
         <p><strong>Note:</strong> Camera data is processed entirely on your device and is never stored on our servers. If you have an active subscription, please cancel it through your device's app store before deleting your account.</p>
 
+        <div class="info-box">
+            <p><strong>Signed in with Apple?</strong> Apple Sign-In is not available on the web. Please use the <strong>Delete Account</strong> option in the app's Settings to delete your account.</p>
+        </div>
+
         <h2>Sign in to delete your account</h2>
-        <form id="delete-form" onsubmit="return false;">
-            <div class="form-group">
-                <label for="email">Email address</label>
-                <input type="email" id="email" placeholder="Enter your Foku account email" required>
+
+        <!-- Tab switcher -->
+        <div class="tab-switcher">
+            <button class="tab-btn active" onclick="switchTab('email')">Email & Password</button>
+            <button class="tab-btn" onclick="switchTab('google')">Google</button>
+        </div>
+
+        <!-- Email/Password sign-in -->
+        <div id="email-section" class="auth-section active">
+            <form id="delete-form" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="email">Email address</label>
+                    <input type="email" id="email" placeholder="Enter your Foku account email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                <button type="button" class="delete-btn" id="delete-btn-email" onclick="handleEmailDelete()">
+                    Delete My Account
+                </button>
+            </form>
+        </div>
+
+        <!-- Google sign-in -->
+        <div id="google-section" class="auth-section">
+            <p style="text-align: center; margin-bottom: 16px; font-size: 14px;">Sign in with the Google account linked to your Foku account.</p>
+            <div class="google-signin-wrapper">
+                <div id="g_id_onload"
+                     data-client_id=""
+                     data-context="signin"
+                     data-callback="handleGoogleCallback"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-shape="rectangular"
+                     data-theme="outline"
+                     data-text="signin_with"
+                     data-size="large"
+                     data-logo_alignment="left"
+                     data-width="300">
+                </div>
             </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Enter your password" required>
-            </div>
-            <button type="button" class="delete-btn" id="delete-btn" onclick="handleDelete()">
-                Delete My Account
-            </button>
-        </form>
+        </div>
 
         <div id="status" class="status-message"></div>
 
@@ -350,7 +460,7 @@
             <p>This will permanently delete your account and all associated data. There is no way to recover it.</p>
             <div class="confirm-buttons">
                 <button class="btn-cancel" onclick="closeConfirm()">Keep Account</button>
-                <button class="btn-confirm-delete" onclick="confirmDelete()">Delete Forever</button>
+                <button class="btn-confirm-delete" id="confirm-delete-btn" onclick="confirmDelete()">Delete Forever</button>
             </div>
         </div>
     </div>
@@ -359,7 +469,11 @@
         const SUPABASE_URL = 'https://yuefrxixuvusujlnpwlh.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1ZWZyeGl4dXZ1c3VqbG5wd2xoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMzg4NzQsImV4cCI6MjA4OTgxNDg3NH0.cUIxiMBNOmsBFfH-IeHHeUahlwDHpcqSFslFuzLtxSE';
 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Pending access token from whichever auth method was used
+        let pendingAccessToken = null;
+        let pendingAuthMethod = null;
 
         function setStatus(message, type) {
             const el = document.getElementById('status');
@@ -373,7 +487,22 @@
             el.textContent = '';
         }
 
-        function handleDelete() {
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.auth-section').forEach(sec => sec.classList.remove('active'));
+
+            if (tab === 'email') {
+                document.querySelector('.tab-btn:first-child').classList.add('active');
+                document.getElementById('email-section').classList.add('active');
+            } else {
+                document.querySelector('.tab-btn:last-child').classList.add('active');
+                document.getElementById('google-section').classList.add('active');
+            }
+            clearStatus();
+        }
+
+        // --- Email/Password flow ---
+        function handleEmailDelete() {
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
 
@@ -382,39 +511,82 @@
                 return;
             }
 
+            pendingAuthMethod = 'email';
             document.getElementById('confirm-overlay').classList.add('visible');
+        }
+
+        // --- Google flow ---
+        async function handleGoogleCallback(response) {
+            if (!response.credential) {
+                setStatus('Google sign-in failed. Please try again.', 'error');
+                return;
+            }
+
+            setStatus('Verifying Google account...', 'loading');
+
+            try {
+                const { data, error } = await sb.auth.signInWithIdToken({
+                    provider: 'google',
+                    token: response.credential,
+                });
+
+                if (error) {
+                    setStatus('Google sign-in failed: ' + error.message, 'error');
+                    return;
+                }
+
+                pendingAccessToken = data.session.access_token;
+                pendingAuthMethod = 'google';
+                clearStatus();
+                document.getElementById('confirm-overlay').classList.add('visible');
+            } catch (err) {
+                setStatus('Google sign-in failed. Please try again.', 'error');
+            }
         }
 
         function closeConfirm() {
             document.getElementById('confirm-overlay').classList.remove('visible');
+            if (pendingAuthMethod !== 'google') {
+                pendingAccessToken = null;
+            }
         }
 
         async function confirmDelete() {
-            closeConfirm();
+            document.getElementById('confirm-overlay').classList.remove('visible');
+            setStatus('Deleting your account...', 'loading');
 
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const btn = document.getElementById('delete-btn');
-
-            btn.disabled = true;
-            btn.textContent = 'Deleting...';
-            setStatus('Signing in and deleting your account...', 'loading');
+            const btn = document.getElementById('delete-btn-email');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Deleting...';
+            }
 
             try {
-                // Sign in to get a valid session
-                const { data, error: signInError } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password,
-                });
+                let accessToken = pendingAccessToken;
 
-                if (signInError) {
-                    setStatus('Sign in failed: ' + signInError.message, 'error');
-                    btn.disabled = false;
-                    btn.textContent = 'Delete My Account';
-                    return;
+                // If email auth, sign in first
+                if (pendingAuthMethod === 'email') {
+                    const email = document.getElementById('email').value.trim();
+                    const password = document.getElementById('password').value;
+
+                    const { data, error: signInError } = await sb.auth.signInWithPassword({
+                        email: email,
+                        password: password,
+                    });
+
+                    if (signInError) {
+                        setStatus('Sign in failed: ' + signInError.message, 'error');
+                        resetButton();
+                        return;
+                    }
+                    accessToken = data.session.access_token;
                 }
 
-                const accessToken = data.session.access_token;
+                if (!accessToken) {
+                    setStatus('Authentication failed. Please try again.', 'error');
+                    resetButton();
+                    return;
+                }
 
                 // Call the delete-account edge function
                 const res = await fetch(SUPABASE_URL + '/functions/v1/delete-account', {
@@ -428,7 +600,6 @@
                 const result = await res.json();
 
                 if (result.success) {
-                    // Show success state
                     document.getElementById('main-container').innerHTML = `
                         <div class="success-container">
                             <div class="checkmark">&#10003;</div>
@@ -444,11 +615,20 @@
                     `;
                 } else {
                     setStatus('Deletion failed: ' + (result.error || 'Unknown error. Please try again.'), 'error');
-                    btn.disabled = false;
-                    btn.textContent = 'Delete My Account';
+                    resetButton();
                 }
             } catch (err) {
                 setStatus('Something went wrong. Please try again or contact gordonj2016@outlook.com for help.', 'error');
+                resetButton();
+            }
+
+            pendingAccessToken = null;
+            pendingAuthMethod = null;
+        }
+
+        function resetButton() {
+            const btn = document.getElementById('delete-btn-email');
+            if (btn) {
                 btn.disabled = false;
                 btn.textContent = 'Delete My Account';
             }
