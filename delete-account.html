@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Foku - Delete Account & Data</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -105,26 +106,61 @@
             margin-right: 10px;
         }
 
-        .contact-btn {
-            display: inline-block;
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #5a6a4d;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d4cfc7;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            background: #faf8f5;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #8b9a6d;
+        }
+
+        .delete-btn {
+            display: block;
+            width: 100%;
             background: #c0392b;
             color: white;
             padding: 14px 28px;
             border-radius: 12px;
-            text-decoration: none;
+            border: none;
+            font-size: 16px;
             font-weight: 600;
-            margin-top: 8px;
+            cursor: pointer;
             transition: background 0.2s;
+            margin-top: 8px;
         }
 
-        .contact-btn:hover {
+        .delete-btn:hover {
             background: #a93226;
+        }
+
+        .delete-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
 
         .back-link {
             display: inline-block;
             margin-top: 16px;
-            margin-left: 16px;
             color: #8b9a6d;
             text-decoration: none;
             font-weight: 500;
@@ -134,22 +170,48 @@
             text-decoration: underline;
         }
 
-        .steps {
-            background: #f9f7f4;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 24px;
+        .status-message {
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin-top: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            display: none;
         }
 
-        .steps ol {
-            padding-left: 20px;
+        .status-message.error {
+            display: block;
+            background: #fdecea;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
         }
 
-        .steps li {
-            color: #555;
-            padding: 8px 0;
-            line-height: 1.6;
-            font-size: 15px;
+        .status-message.success {
+            display: block;
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .status-message.loading {
+            display: block;
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            color: #1565c0;
+        }
+
+        .success-container {
+            text-align: center;
+            padding: 32px 0;
+        }
+
+        .success-container .checkmark {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .success-container h2 {
+            margin-top: 0;
         }
 
         .footer {
@@ -160,12 +222,81 @@
             color: #999;
             font-size: 14px;
         }
+
+        .confirm-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .confirm-overlay.visible {
+            display: flex;
+        }
+
+        .confirm-dialog {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .confirm-dialog h3 {
+            color: #c0392b;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .confirm-dialog p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .confirm-buttons button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-cancel {
+            background: #f0ece6;
+            color: #5a6a4d;
+        }
+
+        .btn-confirm-delete {
+            background: #c0392b;
+            color: white;
+        }
+
+        .btn-confirm-delete:hover {
+            background: #a93226;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="main-container">
         <h1>Delete Account & Data</h1>
-        <p class="tagline">Foku - Account Deletion Request</p>
+        <p class="tagline">Foku - Account Deletion</p>
 
         <div class="warning-box">
             <p>Account deletion is permanent and cannot be undone. All your data will be permanently removed from our servers.</p>
@@ -185,24 +316,143 @@
             </ul>
         </div>
 
-        <p><strong>Note:</strong> Camera data is processed entirely on your device and is never stored on our servers, so there is nothing to delete. If you have an active subscription, please cancel it through your device's app store before requesting deletion.</p>
+        <p><strong>Note:</strong> Camera data is processed entirely on your device and is never stored on our servers. If you have an active subscription, please cancel it through your device's app store before deleting your account.</p>
 
-        <h2>How to request deletion</h2>
-        <div class="steps">
-            <ol>
-                <li>Send an email to the address below from the email associated with your Foku account.</li>
-                <li>Include <strong>"Delete My Account"</strong> in the subject line.</li>
-                <li>We will verify your identity and process the deletion within 3 business days.</li>
-                <li>You will receive a confirmation email once your data has been deleted.</li>
-            </ol>
-        </div>
+        <h2>Sign in to delete your account</h2>
+        <form id="delete-form" onsubmit="return false;">
+            <div class="form-group">
+                <label for="email">Email address</label>
+                <input type="email" id="email" placeholder="Enter your Foku account email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+            <button type="button" class="delete-btn" id="delete-btn" onclick="handleDelete()">
+                Delete My Account
+            </button>
+        </form>
 
-        <a href="mailto:gordonj2016@outlook.com?subject=Delete%20My%20Account&body=Please%20delete%20my%20Foku%20account%20and%20all%20associated%20data.%0A%0AMy%20account%20email%3A%20" class="contact-btn">Request Account Deletion</a>
+        <div id="status" class="status-message"></div>
+
+        <br>
         <a href="index.html" class="back-link">Back to Support</a>
 
         <div class="footer">
             <p>&copy; 2024 Foku. All rights reserved.</p>
         </div>
     </div>
+
+    <!-- Confirmation dialog -->
+    <div class="confirm-overlay" id="confirm-overlay">
+        <div class="confirm-dialog">
+            <h3>Are you absolutely sure?</h3>
+            <p>This will permanently delete your account and all associated data. There is no way to recover it.</p>
+            <div class="confirm-buttons">
+                <button class="btn-cancel" onclick="closeConfirm()">Keep Account</button>
+                <button class="btn-confirm-delete" onclick="confirmDelete()">Delete Forever</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://yuefrxixuvusujlnpwlh.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1ZWZyeGl4dXZ1c3VqbG5wd2xoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI3MzMwMjIsImV4cCI6MjA1ODMwOTAyMn0.A0SmNmA4FQX06VPXuuY9G-6L6pHWfa9pcrdKd40GSVY';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function setStatus(message, type) {
+            const el = document.getElementById('status');
+            el.textContent = message;
+            el.className = 'status-message ' + type;
+        }
+
+        function clearStatus() {
+            const el = document.getElementById('status');
+            el.className = 'status-message';
+            el.textContent = '';
+        }
+
+        function handleDelete() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                setStatus('Please enter your email and password.', 'error');
+                return;
+            }
+
+            document.getElementById('confirm-overlay').classList.add('visible');
+        }
+
+        function closeConfirm() {
+            document.getElementById('confirm-overlay').classList.remove('visible');
+        }
+
+        async function confirmDelete() {
+            closeConfirm();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('delete-btn');
+
+            btn.disabled = true;
+            btn.textContent = 'Deleting...';
+            setStatus('Signing in and deleting your account...', 'loading');
+
+            try {
+                // Sign in to get a valid session
+                const { data, error: signInError } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password,
+                });
+
+                if (signInError) {
+                    setStatus('Sign in failed: ' + signInError.message, 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Delete My Account';
+                    return;
+                }
+
+                const accessToken = data.session.access_token;
+
+                // Call the delete-account edge function
+                const res = await fetch(SUPABASE_URL + '/functions/v1/delete-account', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + accessToken,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const result = await res.json();
+
+                if (result.success) {
+                    // Show success state
+                    document.getElementById('main-container').innerHTML = `
+                        <div class="success-container">
+                            <div class="checkmark">&#10003;</div>
+                            <h2>Account Deleted</h2>
+                            <p>Your account and all associated data have been permanently deleted from our servers.</p>
+                            <p>You can uninstall the Foku app from your device. Thank you for using Foku.</p>
+                            <br>
+                            <a href="index.html" class="back-link">Back to Support</a>
+                        </div>
+                        <div class="footer">
+                            <p>&copy; 2024 Foku. All rights reserved.</p>
+                        </div>
+                    `;
+                } else {
+                    setStatus('Deletion failed: ' + (result.error || 'Unknown error. Please try again.'), 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Delete My Account';
+                }
+            } catch (err) {
+                setStatus('Something went wrong. Please try again or contact gordonj2016@outlook.com for help.', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Delete My Account';
+            }
+        }
+    </script>
 </body>
 </html>
